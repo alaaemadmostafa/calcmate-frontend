@@ -215,7 +215,7 @@
 <div id="auth-screen" style="display:none;">
   <div class="auth-card">
     <h2 id="auth-title">تسجيل الدخول</h2>
-    <div class="sub" id="auth-sub">سجّلي دخولك عشان بياناتك تتحفظ أونلاين</div>
+    <div class="sub" id="auth-sub">سجّل دخولك عشان بياناتك تتحفظ أونلاين</div>
 
     <div id="auth-signup-fields" style="display:none;">
       <div class="auth-field">
@@ -239,7 +239,7 @@
 
     <div class="auth-switch">
       <span id="auth-switch-text">لسه معكيش حساب؟</span>
-      <a onclick="toggleAuthMode()" id="auth-switch-link">اعملي حساب جديد</a>
+      <a onclick="toggleAuthMode()" id="auth-switch-link">اعمل حساب جديد</a>
     </div>
   </div>
 </div>
@@ -345,7 +345,7 @@ async function apiFetch(path, options={}){
   if(res.status === 401){
     // التوكن بايظ أو خلص، ارجعي لشاشة الدخول
     logout();
-    throw new Error("جلستك انتهت، سجّلي دخول تاني");
+    throw new Error("جلستك انتهت، سجّل دخول تاني");
   }
   const data = await res.json().catch(()=> ({}));
   if(!res.ok){ throw new Error(data.message || "حصل خطأ، حاولي تاني"); }
@@ -361,12 +361,12 @@ function renderAuthScreen(){
   const isSignup = authMode === "signup";
   document.getElementById("auth-title").textContent = isSignup ? "إنشاء حساب جديد" : "تسجيل الدخول";
   document.getElementById("auth-sub").textContent = isSignup
-    ? "اعملي حسابك عشان تبدئي تحفظي بياناتك أونلاين"
-    : "سجّلي دخولك عشان بياناتك تتحفظ أونلاين";
+    ? "اعمل حسابك عشان تبدأ تحفظ بياناتك أونلاين"
+    : "سجّل دخولك عشان بياناتك تتحفظ أونلاين";
   document.getElementById("auth-signup-fields").style.display = isSignup ? "block" : "none";
   document.getElementById("auth-submit-btn").textContent = isSignup ? "إنشاء الحساب" : "دخول";
-  document.getElementById("auth-switch-text").textContent = isSignup ? "عندك حساب بالفعل؟" : "لسه معكيش حساب؟";
-  document.getElementById("auth-switch-link").textContent = isSignup ? "سجّلي دخول" : "اعملي حساب جديد";
+  document.getElementById("auth-switch-text").textContent = isSignup ? "عندك حساب بالفعل؟" : "لسه معكش حساب؟";
+  document.getElementById("auth-switch-link").textContent = isSignup ? "سجّل دخول" : "اعمل حساب جديد";
   document.getElementById("auth-error").textContent = "";
 }
 async function submitAuth(){
@@ -377,7 +377,7 @@ async function submitAuth(){
   const name = document.getElementById("auth-name")?.value.trim();
 
   if(!email || !password){ errEl.textContent = "من فضلك املأي البريد وكلمة المرور"; return; }
-  if(authMode === "signup" && !name){ errEl.textContent = "من فضلك اكتبي اسمك"; return; }
+  if(authMode === "signup" && !name){ errEl.textContent = "من فضلك اكتب اسمك"; return; }
 
   const btn = document.getElementById("auth-submit-btn");
   btn.disabled = true;
@@ -455,7 +455,7 @@ const TABS = [
   {id:"products", label:"المنتجات والخدمات", icon:"📦"},
   {id:"materials", label:"إجمالي المواد", icon:"🧾"},
   {id:"fixed", label:"الرواتب والمصاريف", icon:"👥"},
-  {id:"ai", label:"توصيات ذكية", icon:"🤖"},
+  {id:"ai", label:"نصائح ذكية", icon:"🤖"},
 ];
 function renderTabs(){
   const nav = document.getElementById("tabs");
@@ -479,16 +479,16 @@ function renderMain(){
 /* ============ توصيات الذكاء الاصطناعي ============ */
 function renderAI(){
   const resultHtml = aiLoading
-    ? `<div class="ai-loading">جارِ البحث عن أفضل التوصيات...</div>`
+    ? `<div class="ai-loading">جارِ تحليل الموضوع وإيجاد أفضل التوصيات...</div>`
     : aiResult
       ? renderAIResult(aiResult)
-      : `<div class="hint">اكتبي إيه اللي بتدوّري عليه (مثال: "علب زجاج رخيصة لتعبئة العسل") ودوسي بحث.</div>`;
+      : `<div class="hint">اكتب وصف لموقفك الحالي في المشروع (تكاليفك، أسعارك، طريقة شرائك للمواد...)، وهيديك الذكاء الاصطناعي نصيحة لو فيه حاجة بتخسرك فلوس، ومصادر أفضل، ومنح أو ممولين ممكن يساعدوك.</div>`;
 
   return `
-    <div class="section-head"><h2>توصيات ذكية</h2></div>
-    <div class="intro-text">اكتبي احتياجك، وهيجيبلك الذكاء الاصطناعي أفضل منتج، بدائل، مورّدين وشركات موثوقة، ومنح وجهات رعاية مرتبطة، من نفس قاعدة بيانات الموقع.</div>
+    <div class="section-head"><h2>نصائح ذكية</h2></div>
+    <div class="intro-text">قول للذكاء الاصطناعي إيه اللي بتعمله في مشروعك، وهو هيقولك لو فيه حاجة ممكن تكون بتخسرك فلوس، ويقترح عليك مصانع أو مورّدين أو متاجر موثوقة تبيع أرخص أو أفضل، وكمان منح أو جهات تمويل ممكن تساعدك.</div>
     <div class="ai-box">
-      <input type="text" id="ai-query" placeholder="مثال: علب زجاج رخيصة لتعبئة العسل" onkeydown="if(event.key==='Enter') runAIRecommend()">
+      <input type="text" id="ai-query" placeholder="اكتب وصف لموقفك أو اللي بتعمله دلوقتي في مشروعك" onkeydown="if(event.key==='Enter') runAIRecommend()">
       <button class="btn btn-primary" onclick="runAIRecommend()">بحث</button>
     </div>
     <div id="ai-results">${resultHtml}</div>
@@ -497,6 +497,13 @@ function renderAI(){
 
 function renderAIResult(r){
   if(r.error) return `<div class="ai-loading" style="color:var(--red)">${esc(r.error)}</div>`;
+
+  const adviceHtml = r.advice ? `
+    <div class="ai-result-card card" style="border-right:4px solid var(--slate);">
+      <h4>نصيحة</h4>
+      <div class="item" style="border-top:none; padding-top:0;"><div class="r" style="font-size:14px; color:var(--ink);">${esc(r.advice)}</div></div>
+    </div>` : "";
+
   const section = (title, item) => item ? `
     <div class="ai-result-card card">
       <h4>${title}</h4>
@@ -510,15 +517,16 @@ function renderAIResult(r){
     </div>` : "";
 
   return `
+    ${adviceHtml}
     ${section("أفضل منتج", r.bestProduct)}
     ${list("بدائل تانية", r.alternatives)}
     ${section("مُصنّع موثوق", r.trustedManufacturer)}
     ${section("مورّد موثوق", r.trustedSupplier)}
     ${section("متجر موثوق", r.trustedStore)}
     ${list("منح مرتبطة", r.relevantGrants)}
-    ${list("جهات رعاية مرتبطة", r.relevantSponsors)}
-    ${(!r.bestProduct && !r.alternatives?.length && !r.trustedManufacturer && !r.trustedSupplier && !r.trustedStore && !r.relevantGrants?.length && !r.relevantSponsors?.length)
-      ? `<div class="empty">مفيش نتائج مطابقة دلوقتي. جربي توصفي احتياجك بشكل مختلف.</div>` : ""}
+    ${list("جهات تمويل مرتبطة", r.relevantSponsors)}
+    ${(!r.advice && !r.bestProduct && !r.alternatives?.length && !r.trustedManufacturer && !r.trustedSupplier && !r.trustedStore && !r.relevantGrants?.length && !r.relevantSponsors?.length)
+      ? `<div class="empty">مفيش نتائج مطابقة دلوقتي. جرّب توصف الموقف بشكل مختلف.</div>` : ""}
   `;
 }
 
