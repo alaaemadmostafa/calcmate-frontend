@@ -482,11 +482,11 @@ function renderAI(){
     ? `<div class="ai-loading">جارِ تحليل الموضوع وإيجاد أفضل التوصيات...</div>`
     : aiResult
       ? renderAIResult(aiResult)
-      : `<div class="hint">اكتب وصف لموقفك الحالي في المشروع (تكاليفك، أسعارك، طريقة شرائك للمواد...)، وهيديك الذكاء الاصطناعي نصيحة لو فيه حاجة بتخسرك فلوس، ومصادر أفضل، ومنح أو ممولين ممكن يساعدوك.</div>`;
+      : `<div class="hint">اكتب وصف لموقفك الحالي في المشروع، وهيقرأ الذكاء الاصطناعي أرقام حاسبتك تلقائيًا (المبيعات، التكلفة، الهامش) عشان يقولك لو فيه حاجة بتخسرك فلوس، ويقترح مصادر أفضل ومنح ممكن تساعدك.</div>`;
 
   return `
     <div class="section-head"><h2>نصائح ذكية</h2></div>
-    <div class="intro-text">قول للذكاء الاصطناعي إيه اللي بتعمله في مشروعك، وهو هيقولك لو فيه حاجة ممكن تكون بتخسرك فلوس، ويقترح عليك مصانع أو مورّدين أو متاجر موثوقة تبيع أرخص أو أفضل، وكمان منح أو جهات تمويل ممكن تساعدك.</div>
+    <div class="intro-text">هنقرأ أرقام مشروعك تلقائيًا من الحاسبة (المبيعات، التكلفة، الهامش، المصاريف الثابتة)، ونديك نصيحة لو فيه حاجة ممكن تكون بتخسرك فلوس، ونقترح عليك مصانع أو مورّدين أو متاجر موثوقة (بأماكنها)، وكمان منح أو جهات تمويل ممكن تساعدك.</div>
     <div class="ai-box">
       <input type="text" id="ai-query" placeholder="اكتب وصف لموقفك أو اللي بتعمله دلوقتي في مشروعك" onkeydown="if(event.key==='Enter') runAIRecommend()">
       <button class="btn btn-primary" onclick="runAIRecommend()">بحث</button>
@@ -530,13 +530,36 @@ function renderAIResult(r){
   `;
 }
 
+function buildFinancialsSummary(){
+  const ft = fixedTotal();
+  let totalSales=0, totalProfit=0;
+  const products = state.products.map(p=>{
+    const r = computeProduct(p);
+    totalSales += r.sales; totalProfit += r.profit;
+    return {
+      name: p.name || "بدون اسم",
+      wastePercent: num(p.wastePercent),
+      costPerUnit: Math.round(r.costPerUnit*100)/100,
+      sellingPrice: Math.round(r.sellingPrice*100)/100,
+      profitPerUnit: Math.round(r.profitPerUnit*100)/100,
+      margin: Math.round(r.margin*10)/10,
+      unitsSold: r.unitsSold,
+      sales: Math.round(r.sales*100)/100,
+    };
+  });
+  const netProfit = totalProfit - ft.total;
+  const netMargin = totalSales>0 ? (netProfit/totalSales)*100 : 0;
+  return { products, fixedCosts: Math.round(ft.total*100)/100, netProfit: Math.round(netProfit*100)/100, netMargin: Math.round(netMargin*10)/10 };
+}
+
 async function runAIRecommend(){
   const query = document.getElementById("ai-query").value.trim();
   if(!query) return;
   aiLoading = true; aiResult = null;
   renderMain();
   try{
-    aiResult = await apiFetch("/api/ai/recommend", { method:"POST", body: JSON.stringify({ query }) });
+    const financials = buildFinancialsSummary();
+    aiResult = await apiFetch("/api/ai/recommend", { method:"POST", body: JSON.stringify({ query, financials }) });
   }catch(e){
     aiResult = { error: e.message };
   }finally{
