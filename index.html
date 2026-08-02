@@ -631,11 +631,13 @@ function dismissLossAlert(){ lossAlert = null; renderMain(); }
 /* ============ تصدير Excel ============ */
 function exportExcel(){
   const ft = fixedTotal();
-  let totalSales=0, totalCostOfSold=0, totalProfit=0;
+  const computed = state.products.map(p=> ({ p, r: computeProduct(p) }));
+  const totalSales = computed.reduce((s,x)=> s + x.r.sales, 0);
+  const totalCostOfSold = computed.reduce((s,x)=> s + x.r.costOfSold, 0);
+  const totalProfit = computed.reduce((s,x)=> s + x.r.profit, 0);
 
-  const productRows = state.products.map(p=>{
-    const r = computeProduct(p);
-    totalSales += r.sales; totalCostOfSold += r.costOfSold; totalProfit += r.profit;
+  const productRows = computed.map(({p, r})=>{
+    const n = computeNetForProduct(r, ft, totalSales, state.products.length);
     return {
       "المنتج/الخدمة": p.name || "بدون اسم",
       "سعر الوحدة": r.sellingPrice,
@@ -643,8 +645,10 @@ function exportExcel(){
       "إجمالي المبيعات": r.sales,
       "تكلفة الوحدة": r.costPerUnit,
       "تكلفة المُباع": r.costOfSold,
-      "إجمالي الربح": r.profit,
-      "الهامش %": Math.round(r.margin*10)/10,
+      "إجمالي الربح (قبل المصاريف الثابتة)": r.profit,
+      "نصيبه من المصاريف الثابتة": Math.round(n.fixedShare*100)/100,
+      "صافي الربح": Math.round(n.netProfit*100)/100,
+      "صافي هامش الربح %": Math.round(n.netMargin*10)/10,
     };
   });
 
@@ -671,11 +675,13 @@ function exportExcel(){
 /* ============ تصدير PDF (عبر الطباعة) ============ */
 function exportPDF(){
   const ft = fixedTotal();
-  let totalSales=0, totalCostOfSold=0, totalProfit=0;
+  const computed = state.products.map(p=> ({ p, r: computeProduct(p) }));
+  const totalSales = computed.reduce((s,x)=> s + x.r.sales, 0);
+  const totalCostOfSold = computed.reduce((s,x)=> s + x.r.costOfSold, 0);
+  const totalProfit = computed.reduce((s,x)=> s + x.r.profit, 0);
 
-  const rows = state.products.map(p=>{
-    const r = computeProduct(p);
-    totalSales += r.sales; totalCostOfSold += r.costOfSold; totalProfit += r.profit;
+  const rows = computed.map(({p, r})=>{
+    const n = computeNetForProduct(r, ft, totalSales, state.products.length);
     return `<tr>
       <td>${esc(p.name)||"بدون اسم"}</td>
       <td>${fmt(r.sellingPrice)}</td>
@@ -683,7 +689,8 @@ function exportPDF(){
       <td>${fmt(r.sales)}</td>
       <td>${fmt(r.costOfSold)}</td>
       <td>${fmt(r.profit)}</td>
-      <td>${fmt(r.margin,1)}%</td>
+      <td>${fmt(n.netProfit)}</td>
+      <td>${fmt(n.netMargin,1)}%</td>
     </tr>`;
   }).join("");
 
@@ -701,7 +708,7 @@ function exportPDF(){
       <div class="p-stat">صافي الربح<b>${fmt(net)} ${CURRENCY}</b></div>
     </div>
     <table>
-      <thead><tr><th>المنتج/الخدمة</th><th>سعر الوحدة</th><th>الكمية المباعة</th><th>إجمالي المبيعات</th><th>تكلفة المُباع</th><th>إجمالي الربح</th><th>الهامش</th></tr></thead>
+      <thead><tr><th>المنتج/الخدمة</th><th>سعر الوحدة</th><th>الكمية المباعة</th><th>إجمالي المبيعات</th><th>تكلفة المُباع</th><th>إجمالي الربح</th><th>صافي الربح</th><th>صافي الهامش</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>
   `;
